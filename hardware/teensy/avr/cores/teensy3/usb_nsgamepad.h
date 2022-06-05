@@ -82,6 +82,14 @@ enum NSButtons {
   NSButton_Reserved2
 };
 
+enum NSAxes {
+  // using unique IDs from NSButtons, with separate type
+  NSAxis_LeftX = NSButton_Reserved2 + 1,
+  NSAxis_LeftY,
+  NSAxis_RightX,
+  NSAxis_RightY,
+};
+
 // 14 Buttons, 4 Axes, 1 D-Pad
 typedef struct ATTRIBUTE_PACKED {
     uint16_t buttons;
@@ -150,6 +158,45 @@ class usb_nsgamepad_class
         }
         bool getButton(uint8_t b) {
             return _report->buttons & ((uint16_t)1 << b);
+        }
+        void setAxis(uint8_t a, uint8_t pos) {
+            switch(a) {
+            case(NSAxis_LeftX):
+                _report->leftXAxis = pos;
+                break;
+            case(NSAxis_LeftY):
+                _report->leftYAxis = pos;
+                break;
+            case(NSAxis_RightX):
+                _report->rightXAxis = pos;
+                break;
+            case(NSAxis_RightY):
+                _report->rightYAxis = pos;
+                break;
+            default:
+                break;
+            }
+        }
+        uint8_t getAxis(uint8_t a) {
+            uint8_t out;
+            switch(a) {
+            case(NSAxis_LeftX):
+                out = _report->leftXAxis;
+                break;
+            case(NSAxis_LeftY):
+                out = _report->leftYAxis;
+                break;
+            case(NSAxis_RightX):
+                out = _report->rightXAxis;
+                break;
+            case(NSAxis_RightY):
+                out = _report->rightYAxis;
+                break;
+            default:
+                out = 0;
+                break;
+            }
+            return out;
         }
         void leftXAxis(uint8_t a) {
             _report->leftXAxis = a;
