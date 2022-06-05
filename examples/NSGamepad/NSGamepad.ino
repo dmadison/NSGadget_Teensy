@@ -32,112 +32,99 @@
 // the analog voltage.
 #include <Bounce2.h>
 
-#define NUM_BUTTONS 14
-const uint8_t BUTTON_PINS[NUM_BUTTONS] = {23, 22, 21, 20, 7, 18, 6, 19, 8, 12, 9, 13, 11, 10};
-#define NUM_DPAD 4
-const uint8_t DPAD_PINS[NUM_DPAD] = {2, 3, 4, 5};  // Up, Right, Down, Left
-const uint8_t DPAD_MAP[16] = {
-                            // LDRU
-  NSGAMEPAD_DPAD_CENTERED,  // 0000 All dpad buttons up
-  NSGAMEPAD_DPAD_UP,        // 0001 direction UP
-  NSGAMEPAD_DPAD_RIGHT,     // 0010 direction RIGHT
-  NSGAMEPAD_DPAD_UP_RIGHT,  // 0011 direction UP RIGHT
-  NSGAMEPAD_DPAD_DOWN,      // 0100 direction DOWN
-  NSGAMEPAD_DPAD_CENTERED,  // 0101 invalid
-  NSGAMEPAD_DPAD_DOWN_RIGHT,// 0110 direction DOWN RIGHT
-  NSGAMEPAD_DPAD_CENTERED,  // 0111 invalid
-  NSGAMEPAD_DPAD_LEFT,      // 1000 direction LEFT
-  NSGAMEPAD_DPAD_UP_LEFT,   // 1001 direction UP LEFT
-  NSGAMEPAD_DPAD_CENTERED,  // 1010 invalid
-  NSGAMEPAD_DPAD_CENTERED,  // 1011 invalid
-  NSGAMEPAD_DPAD_DOWN_LEFT, // 1100 direction DOWN LEFT
-  NSGAMEPAD_DPAD_CENTERED,  // 1101 invalid
-  NSGAMEPAD_DPAD_CENTERED,  // 1110 invalid
-  NSGAMEPAD_DPAD_CENTERED,  // 1111 invalid
+struct ButtonInput {
+    uint8_t pin;      // the digital pin number
+    uint8_t control;  // the NSGamepad control
+    Bounce  button;   // the Bounce button object
 };
 
-Bounce * buttons = new Bounce[NUM_BUTTONS];
-Bounce * dpad = new Bounce[NUM_DPAD];
+#define NUM_INPUTS 20
+ButtonInput inputs[NUM_INPUTS] = {
+    { 23, NSButton_Y },
+    { 22, NSButton_B },
+    { 21, NSButton_A },
+    { 20, NSButton_X },
+    { 7,  NSButton_L },
+    { 18, NSButton_R },
+    { 6,  NSButton_ZL },
+    { 19, NSButton_ZR },
+    { 8,  NSButton_Minus },
+    { 12, NSButton_Plus },
+    { 9,  NSButton_LeftStick },
+    { 13, NSButton_RightStick },
+    { 11, NSButton_Home },
+    { 10, NSButton_Capture },
+
+    { 2,  NSDPad_Up },
+    { 3,  NSDPad_Right },
+    { 4,  NSDPad_Down },
+    { 5,  NSDPad_Left },
+};
 
 void setup() {
-  // you can print to the Serial1 port while the NSGamepad is active!
-  Serial1.begin(115200);
-  Serial1.println("NSGamepad setup");
-  for (int i = 0; i < NUM_BUTTONS; i++) {
-    buttons[i].attach( BUTTON_PINS[i] , INPUT_PULLUP  );  //setup the bounce instance for the current button
-    buttons[i].interval(10);                              // interval in ms
-  }
-  for (int i = 0; i < NUM_DPAD; i++) {
-    dpad[i].attach( DPAD_PINS[i] , INPUT_PULLUP  );       //setup the bounce instance for the current button
-    dpad[i].interval(10);                                 // interval in ms
-  }
+    // you can print to the Serial1 port while the NSGamepad is active!
+    Serial1.begin(115200);
+    Serial1.println("NSGamepad setup");
 
-  // Sends a clean HID report to the host.
-  NSGamepad.begin();
+    for (int i = 0; i < NUM_INPUTS; i++) {
+        inputs[i].button.attach( inputs[i].pin , INPUT_PULLUP  );  //setup the bounce instance for the current button
+        inputs[i].button.interval(10);                             // interval in ms
+    }
+
+    // Sends a clean HID report to the host.
+    NSGamepad.begin();
 }
 
-uint8_t dpad_bits = 0;
-
 typedef struct axis_t {
-  uint16_t adcMin;
-  uint16_t adcMax;
-  const uint8_t toMin;
-  const uint8_t toMax;
+    uint16_t adcMin;
+    uint16_t adcMax;
+    const uint8_t toMin;
+    const uint8_t toMax;
 } axis_t;
 
+const uint16_t AxisOffset = 128;
+
 axis_t LeftX = {
-  128, 1024-128, 0, 255
+    AxisOffset, 1024-AxisOffset, 0, 255
 };
 axis_t LeftY = {
-  128, 1024-128, 255, 0
+    AxisOffset, 1024-AxisOffset, 255, 0
 };
 axis_t RightX = {
-  128, 1024-128, 0, 255
+    AxisOffset, 1024-AxisOffset, 0, 255
 };
 axis_t RightY = {
-  128, 1024-128, 255, 0
+    AxisOffset, 1024-AxisOffset, 255, 0
 };
 
 // Dynamically determine the pot limits because of my craptastic
 // analog sticks.
 uint8_t axisRead(int analogPin, struct axis_t &ax)
 {
-  uint16_t x = analogRead(analogPin);
-  if (x > ax.adcMax) ax.adcMax = x;
-  if (x < ax.adcMin) ax.adcMin = x;
-  return map(x, ax.adcMin, ax.adcMax, ax.toMin, ax.toMax);
+    uint16_t x = analogRead(analogPin);
+    if (x > ax.adcMax) ax.adcMax = x;
+    if (x < ax.adcMin) ax.adcMin = x;
+    return map(x, ax.adcMin, ax.adcMax, ax.toMin, ax.toMax);
 }
 
 void loop() {
-  for (int i = 0; i < NUM_BUTTONS; i++) {
-    // Update the Bounce instance
-    buttons[i].update();
-    // Button fell means button pressed
-    if ( buttons[i].fell() ) {
-      NSGamepad.press(i);
+    for (int i = 0; i < NUM_INPUTS; i++) {
+        // Update the Bounce instance
+        inputs[i].button.update();
+        
+        // Button fell means button pressed
+        if ( inputs[i].button.fell() ) {
+            NSGamepad.press(inputs[i].control);
+        }
+        else if ( inputs[i].button.rose() ) {
+            NSGamepad.release(inputs[i].control);
+        }
     }
-    else if ( buttons[i].rose() ) {
-      NSGamepad.release(i);
-    }
-  }
 
-  for (unsigned i = 0; i < sizeof(DPAD_PINS); i++) {
-    // Update the Bounce instance
-    dpad[i].update();
-    // Button fell means button pressed
-    if ( dpad[i].fell() ) {
-      dpad_bits |= (1 << i);
-    }
-    else if ( dpad[i].rose() ) {
-      dpad_bits &= ~(1 << i);
-    }
-  }
-  NSGamepad.dPad(DPAD_MAP[dpad_bits]);
+    NSGamepad.set(NSAxis_LeftY,  axisRead(3, LeftY));
+    NSGamepad.set(NSAxis_LeftX,  axisRead(2, LeftX));
+    NSGamepad.set(NSAxis_RightY, axisRead(1, RightY));
+    NSGamepad.set(NSAxis_RightX, axisRead(0, RightX));
 
-  NSGamepad.leftYAxis(axisRead(3, LeftY));
-  NSGamepad.leftXAxis(axisRead(2, LeftX));
-  NSGamepad.rightYAxis(axisRead(1, RightY));
-  NSGamepad.rightXAxis(axisRead(0, RightX));
-
-  NSGamepad.loop();
+    NSGamepad.loop();
 }
