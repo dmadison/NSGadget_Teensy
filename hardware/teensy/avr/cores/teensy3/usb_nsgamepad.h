@@ -73,10 +73,10 @@ enum NSInputs {
   NSButton_B,
   NSButton_A,
   NSButton_X,
-  NSButton_LeftTrigger,
-  NSButton_RightTrigger,
-  NSButton_LeftThrottle,
-  NSButton_RightThrottle,
+  NSButton_L,
+  NSButton_R,
+  NSButton_ZL,
+  NSButton_ZR,
   NSButton_Minus,
   NSButton_Plus,
   NSButton_LeftStick,
@@ -97,6 +97,12 @@ enum NSInputs {
   NSDPad_Down,
   NSDPad_Left,
   NSDPad_Right,
+
+  // Deprecated Input Names
+  NSButton_LeftTrigger = NSButton_L,
+  NSButton_RightTrigger = NSButton_R,
+  NSButton_LeftThrottle = NSButton_ZL,
+  NSButton_RightThrottle = NSButton_ZR,
 };
 
 // 14 Buttons, 4 Axes, 1 D-Pad
