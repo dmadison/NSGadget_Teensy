@@ -91,6 +91,12 @@ enum NSInputs {
   NSAxis_LeftY,
   NSAxis_RightX,
   NSAxis_RightY,
+
+  // Directional Pads
+  NSDPad_Up,
+  NSDPad_Down,
+  NSDPad_Left,
+  NSDPad_Right,
 };
 
 // 14 Buttons, 4 Axes, 1 D-Pad
@@ -145,6 +151,20 @@ class usb_nsgamepad_class
         uint32_t startMillis;
     private:
         HID_NSGamepadReport_Data_t* const report;
+
+        struct ATTRIBUTE_PACKED DPadButtons {
+            union {
+                uint8_t raw;
+                struct {
+                    bool up : 1;
+                    bool down : 1;
+                    bool left : 1;
+                    bool right : 1;
+                };
+            };
+        } dpadBuffer;
+
+        static uint8_t encodeDpad(DPadButtons dpad);
 };
 extern usb_nsgamepad_class NSGamepad;
 

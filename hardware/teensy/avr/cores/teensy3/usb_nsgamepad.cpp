@@ -63,6 +63,7 @@ void usb_nsgamepad_class::loop(void) {
 };
 
 void usb_nsgamepad_class::send(void) {
+    report->dPad = encodeDpad(dpadBuffer);  // set dpad from buffer
     usb_nsgamepad_send();
 }
 
@@ -84,7 +85,7 @@ void usb_nsgamepad_class::releaseAll(void) {
     memset(report, 0x00, NSGAMEPAD_REPORT_SIZE);
     report->leftXAxis = report->leftYAxis = 0x80;
     report->rightXAxis = report->rightYAxis = 0x80;
-    report->dPad = NSGAMEPAD_DPAD_CENTERED;
+    dpadBuffer.raw = 0x00;
 };
 
 void usb_nsgamepad_class::setButton(uint8_t b, bool state) {
@@ -140,72 +141,64 @@ bool usb_nsgamepad_class::getDpad(uint8_t d) {
     bool output;
 
     switch (d) {
-    case(NSGAMEPAD_DPAD_UP):
-        output = (
-            report->dPad == NSGAMEPAD_DPAD_UP
-            || report->dPad == NSGAMEPAD_DPAD_UP_LEFT
-            || report->dPad == NSGAMEPAD_DPAD_UP_RIGHT
-            );
+    case(NSDPad_Up):
+        output = dpadBuffer.up;
         break;
-    case(NSGAMEPAD_DPAD_DOWN):
-        output = (
-            report->dPad == NSGAMEPAD_DPAD_DOWN
-            || report->dPad == NSGAMEPAD_DPAD_DOWN_LEFT
-            || report->dPad == NSGAMEPAD_DPAD_DOWN_RIGHT
-            );
+    case(NSDPad_Down):
+        output = dpadBuffer.down;
         break;
-    case(NSGAMEPAD_DPAD_RIGHT):
-        output = (
-            report->dPad == NSGAMEPAD_DPAD_RIGHT
-            || report->dPad == NSGAMEPAD_DPAD_UP_RIGHT
-            || report->dPad == NSGAMEPAD_DPAD_DOWN_RIGHT
-            );
+    case(NSDPad_Left):
+        output = dpadBuffer.left;
         break;
-    case(NSGAMEPAD_DPAD_LEFT):
-        output = (
-            report->dPad == NSGAMEPAD_DPAD_LEFT
-            || report->dPad == NSGAMEPAD_DPAD_UP_LEFT
-            || report->dPad == NSGAMEPAD_DPAD_DOWN_LEFT
-            );
+    case(NSDPad_Right):
+        output = dpadBuffer.right;
         break;
     default:
-        output = (d == report->dPad);
+        output = false;  // not a dpad
     }
     return output;
 }
 
 void usb_nsgamepad_class::setDpad(bool up, bool down, bool left, bool right) {
+    dpadBuffer.up = up;
+    dpadBuffer.down = down;
+    dpadBuffer.left = left;
+    dpadBuffer.right = right;
+}
+
+uint8_t usb_nsgamepad_class::encodeDpad(DPadButtons dpad) {
     // Simultaneous Opposite Cardinal Directions (SOCD) cleaner
-    // up + down is up only, left + right is neutral
-    if (up && down) {
-        down = false;
+    // up + down is neutral, left + right is neutral
+    if (dpad.up && dpad.down) {
+        dpad.up = false;
+        dpad.down = false;
     }
-    if (left && right) {
-        left = false;
-        right = false;
+    if (dpad.left && dpad.right) {
+        dpad.left = false;
+        dpad.right = false;
     }
 
     uint8_t output;
-    if (up) {
-        if (left)  output = NSGAMEPAD_DPAD_UP_LEFT;
-        else if (right) output = NSGAMEPAD_DPAD_UP_RIGHT;
-        else            output = NSGAMEPAD_DPAD_UP;
+    if (dpad.up) {
+             if (dpad.left)  output = NSGAMEPAD_DPAD_UP_LEFT;
+        else if (dpad.right) output = NSGAMEPAD_DPAD_UP_RIGHT;
+        else                 output = NSGAMEPAD_DPAD_UP;
     }
-    else if (right) {
-        if (down) output = NSGAMEPAD_DPAD_DOWN_RIGHT;
-        else      output = NSGAMEPAD_DPAD_RIGHT;
+    else if (dpad.right) {
+        if (dpad.down) output = NSGAMEPAD_DPAD_DOWN_RIGHT;
+        else           output = NSGAMEPAD_DPAD_RIGHT;
     }
-    else if (down) {
-        if (left) output = NSGAMEPAD_DPAD_DOWN_LEFT;
-        else      output = NSGAMEPAD_DPAD_DOWN;
+    else if (dpad.down) {
+        if (dpad.left) output = NSGAMEPAD_DPAD_DOWN_LEFT;
+        else           output = NSGAMEPAD_DPAD_DOWN;
     }
-    else if (left) {
+    else if (dpad.left) {
         output = NSGAMEPAD_DPAD_LEFT;
     }
     else {
         output = NSGAMEPAD_DPAD_CENTERED;
     }
-    report->dPad = output;
+    return output;
 }
 
 
