@@ -50,8 +50,8 @@ ButtonInput inputs[NUM_INPUTS] = {
     { 19, NSButton_ZR },
     { 8,  NSButton_Minus },
     { 12, NSButton_Plus },
-    { 9,  NSButton_LeftStick },
-    { 13, NSButton_RightStick },
+    { 9,  NSButton_L3 },
+    { 13, NSButton_R3 },
     { 11, NSButton_Home },
     { 10, NSButton_Capture },
 
