@@ -221,6 +221,43 @@ class usb_nsgamepad_class
         void dPad(int8_t d) {
             report->dPad = d;
         };
+        bool getDpad(uint8_t d) {
+            bool output;
+
+            switch (d) {
+            case(NSGAMEPAD_DPAD_UP):
+                output = (
+                       report->dPad == NSGAMEPAD_DPAD_UP 
+                    || report->dPad == NSGAMEPAD_DPAD_UP_LEFT
+                    || report->dPad == NSGAMEPAD_DPAD_UP_RIGHT
+                );
+                break;
+            case(NSGAMEPAD_DPAD_DOWN):
+                output = (
+                       report->dPad == NSGAMEPAD_DPAD_DOWN
+                    || report->dPad == NSGAMEPAD_DPAD_DOWN_LEFT
+                    || report->dPad == NSGAMEPAD_DPAD_DOWN_RIGHT
+                    );
+                break;
+            case(NSGAMEPAD_DPAD_RIGHT):
+                output = (
+                       report->dPad == NSGAMEPAD_DPAD_RIGHT
+                    || report->dPad == NSGAMEPAD_DPAD_UP_RIGHT
+                    || report->dPad == NSGAMEPAD_DPAD_DOWN_RIGHT
+                    );
+                break;
+            case(NSGAMEPAD_DPAD_LEFT):
+                output = (
+                       report->dPad == NSGAMEPAD_DPAD_LEFT
+                    || report->dPad == NSGAMEPAD_DPAD_UP_LEFT
+                    || report->dPad == NSGAMEPAD_DPAD_DOWN_LEFT
+                    );
+                break;
+            default:
+                output = (d == report->dPad);
+            }
+            return output;
+        }
         void setDpad(bool up, bool down, bool left, bool right) {
             // Simultaneous Opposite Cardinal Directions (SOCD) cleaner
             // up + down is up only, left + right is neutral
