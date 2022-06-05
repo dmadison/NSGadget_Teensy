@@ -130,7 +130,7 @@ class usb_nsgamepad_class
             else {
                 deltaMillis = ((0xFFFFFFFFUL - startMillis) + endMillis);
             }
-            if (deltaMillis >= 7) {
+            if (deltaMillis >= 6) {
                 send();
                 startMillis = millis();
             }
