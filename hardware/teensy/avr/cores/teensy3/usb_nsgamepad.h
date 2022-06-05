@@ -137,6 +137,13 @@ class usb_nsgamepad_class
                 startMillis = millis();
             }
         };
+        void send(void) {
+            usb_nsgamepad_send();
+        }
+        void send(HID_NSGamepadReport_Data_t& r) {
+            memcpy(report, &r, sizeof(HID_NSGamepadReport_Data_t));
+            usb_nsgamepad_send();
+        }
         void write(void) {
             usb_nsgamepad_send();
         };
