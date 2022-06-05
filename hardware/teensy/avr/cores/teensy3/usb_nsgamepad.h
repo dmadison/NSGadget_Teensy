@@ -46,6 +46,7 @@ extern "C" {
 #endif
 int usb_nsgamepad_send(void);
 extern uint32_t usb_nsgamepad_data[(NSGAMEPAD_REPORT_SIZE+3)/4];
+extern volatile uint8_t usb_configuration;
 #ifdef __cplusplus
 }
 #endif
@@ -108,6 +109,9 @@ typedef struct ATTRIBUTE_PACKED {
 class usb_nsgamepad_class
 {
     public:
+        bool connected(void) {
+            return usb_configuration ? 1 : 0;
+        }
         void begin(void) {
             end();
             startMillis = millis();

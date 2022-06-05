@@ -110,6 +110,9 @@ typedef struct ATTRIBUTE_PACKED {
 class usb_nsgamepad_class
 {
     public:
+        bool connected(void) {
+            return usb_configuration ? 1 : 0;
+        }
         void begin(void) {
             end();
             startMillis = millis();
