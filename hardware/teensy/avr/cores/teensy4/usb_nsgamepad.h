@@ -107,11 +107,7 @@ class usb_nsgamepad_class
             startMillis = millis();
         };
         void end(void) {
-            // release all buttons and center all axes
-            memset(_report, 0x00, NSGAMEPAD_REPORT_SIZE);
-            _report->leftXAxis = _report->leftYAxis = 0x80;
-            _report->rightXAxis = _report->rightYAxis = 0x80;
-            _report->dPad = NSGAMEPAD_DPAD_CENTERED;
+            releaseAll();
             usb_nsgamepad_send();
         };
         void loop(void){
@@ -142,7 +138,11 @@ class usb_nsgamepad_class
             _report->buttons &= ~((uint16_t)1 << b);
         };
         void releaseAll(void) {
-            _report->buttons = 0;
+            // release all buttons and center all axes
+            memset(_report, 0x00, NSGAMEPAD_REPORT_SIZE);
+            _report->leftXAxis = _report->leftYAxis = 0x80;
+            _report->rightXAxis = _report->rightYAxis = 0x80;
+            _report->dPad = NSGAMEPAD_DPAD_CENTERED;
         };
         void buttons(uint16_t b) {
             _report->buttons = b;
