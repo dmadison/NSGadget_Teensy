@@ -103,13 +103,16 @@ typedef struct ATTRIBUTE_PACKED {
     uint8_t filler;
 } HID_NSGamepadReport_Data_t;
 
-#define _report ((HID_NSGamepadReport_Data_t *)(&usb_nsgamepad_data[0]))
-
 // C++ interface
 #ifdef __cplusplus
 class usb_nsgamepad_class
 {
     public:
+        usb_nsgamepad_class()
+            : report((HID_NSGamepadReport_Data_t*)(&usb_nsgamepad_data[0]))
+        {
+            releaseAll();  // fill report struct with idle data
+        }
         bool connected(void) {
             return usb_configuration ? 1 : 0;
         }
@@ -139,44 +142,44 @@ class usb_nsgamepad_class
             usb_nsgamepad_send();
         };
         void write(void *report) {
-            memcpy(_report, report, NSGAMEPAD_REPORT_SIZE);
+            memcpy(report, report, NSGAMEPAD_REPORT_SIZE);
             usb_nsgamepad_send();
         };
         void press(uint8_t b) {
-            _report->buttons |= (uint16_t)1 << b;
+            report->buttons |= (uint16_t)1 << b;
         };
         void release(uint8_t b) {
-            _report->buttons &= ~((uint16_t)1 << b);
+            report->buttons &= ~((uint16_t)1 << b);
         };
         void releaseAll(void) {
             // release all buttons and center all axes
-            memset(_report, 0x00, NSGAMEPAD_REPORT_SIZE);
-            _report->leftXAxis = _report->leftYAxis = 0x80;
-            _report->rightXAxis = _report->rightYAxis = 0x80;
-            _report->dPad = NSGAMEPAD_DPAD_CENTERED;
+            memset(report, 0x00, NSGAMEPAD_REPORT_SIZE);
+            report->leftXAxis = report->leftYAxis = 0x80;
+            report->rightXAxis = report->rightYAxis = 0x80;
+            report->dPad = NSGAMEPAD_DPAD_CENTERED;
         };
         void buttons(uint16_t b) {
-            _report->buttons = b;
+            report->buttons = b;
         };
         void setButton(uint8_t b, bool state) {
             state ? press(b) : release(b);
         }
         bool getButton(uint8_t b) {
-            return _report->buttons & ((uint16_t)1 << b);
+            return report->buttons & ((uint16_t)1 << b);
         }
         void setAxis(uint8_t a, uint8_t pos) {
             switch(a) {
             case(NSAxis_LeftX):
-                _report->leftXAxis = pos;
+                report->leftXAxis = pos;
                 break;
             case(NSAxis_LeftY):
-                _report->leftYAxis = pos;
+                report->leftYAxis = pos;
                 break;
             case(NSAxis_RightX):
-                _report->rightXAxis = pos;
+                report->rightXAxis = pos;
                 break;
             case(NSAxis_RightY):
-                _report->rightYAxis = pos;
+                report->rightYAxis = pos;
                 break;
             default:
                 break;
@@ -186,16 +189,16 @@ class usb_nsgamepad_class
             uint8_t out;
             switch(a) {
             case(NSAxis_LeftX):
-                out = _report->leftXAxis;
+                out = report->leftXAxis;
                 break;
             case(NSAxis_LeftY):
-                out = _report->leftYAxis;
+                out = report->leftYAxis;
                 break;
             case(NSAxis_RightX):
-                out = _report->rightXAxis;
+                out = report->rightXAxis;
                 break;
             case(NSAxis_RightY):
-                out = _report->rightYAxis;
+                out = report->rightYAxis;
                 break;
             default:
                 out = 0;
@@ -204,22 +207,24 @@ class usb_nsgamepad_class
             return out;
         }
         void leftXAxis(uint8_t a) {
-            _report->leftXAxis = a;
+            report->leftXAxis = a;
         };
         void leftYAxis(uint8_t a) {
-            _report->leftYAxis = a;
+            report->leftYAxis = a;
         };
         void rightXAxis(uint8_t a) {
-            _report->rightXAxis = a;
+            report->rightXAxis = a;
         };
         void rightYAxis(uint8_t a) {
-            _report->rightYAxis = a;
+            report->rightYAxis = a;
         };
         void dPad(int8_t d) {
-            _report->dPad = d;
+            report->dPad = d;
         };
     protected:
         uint32_t startMillis;
+    private:
+        HID_NSGamepadReport_Data_t* const report;
 };
 extern usb_nsgamepad_class NSGamepad;
 
