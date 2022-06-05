@@ -117,12 +117,9 @@ class usb_nsgamepad_class
             return usb_configuration ? 1 : 0;
         }
         void begin(void) {
-            end();
-            startMillis = millis();
-        };
-        void end(void) {
             releaseAll();
             usb_nsgamepad_send();
+            startMillis = millis();
         };
         void loop(void){
             uint32_t endMillis = millis();
@@ -134,7 +131,7 @@ class usb_nsgamepad_class
                 deltaMillis = ((0xFFFFFFFFUL - startMillis) + endMillis);
             }
             if (deltaMillis >= 7) {
-                write();
+                send();
                 startMillis = millis();
             }
         };
@@ -145,13 +142,6 @@ class usb_nsgamepad_class
             memcpy(report, &r, sizeof(HID_NSGamepadReport_Data_t));
             usb_nsgamepad_send();
         }
-        void write(void) {
-            usb_nsgamepad_send();
-        };
-        void write(void *r) {
-            memcpy(report, r, NSGAMEPAD_REPORT_SIZE);
-            usb_nsgamepad_send();
-        };
         void press(uint8_t b) {
             report->buttons |= (uint16_t)1 << b;
         };
@@ -164,9 +154,6 @@ class usb_nsgamepad_class
             report->leftXAxis = report->leftYAxis = 0x80;
             report->rightXAxis = report->rightYAxis = 0x80;
             report->dPad = NSGAMEPAD_DPAD_CENTERED;
-        };
-        void buttons(uint16_t b) {
-            report->buttons = b;
         };
         void setButton(uint8_t b, bool state) {
             state ? press(b) : release(b);
@@ -213,21 +200,6 @@ class usb_nsgamepad_class
             }
             return out;
         }
-        void leftXAxis(uint8_t a) {
-            report->leftXAxis = a;
-        };
-        void leftYAxis(uint8_t a) {
-            report->leftYAxis = a;
-        };
-        void rightXAxis(uint8_t a) {
-            report->rightXAxis = a;
-        };
-        void rightYAxis(uint8_t a) {
-            report->rightYAxis = a;
-        };
-        void dPad(int8_t d) {
-            report->dPad = d;
-        };
         bool getDpad(uint8_t d) {
             bool output;
 
@@ -298,6 +270,38 @@ class usb_nsgamepad_class
             }
             report->dPad = output;
         }
+
+        // Deprecated functions
+        void end(void) __attribute__((deprecated)) {
+            releaseAll();
+            usb_nsgamepad_send();
+        };
+        void write(void) __attribute__((deprecated)) {
+            usb_nsgamepad_send();
+        };
+        void write(void* r) __attribute__((deprecated)) {
+            memcpy(report, r, NSGAMEPAD_REPORT_SIZE);
+            usb_nsgamepad_send();
+        };
+        void buttons(uint16_t b) __attribute__((deprecated)) {
+            report->buttons = b;
+        };
+        void leftXAxis(uint8_t a) __attribute__((deprecated)) {
+            report->leftXAxis = a;
+        };
+        void leftYAxis(uint8_t a) __attribute__((deprecated)) {
+            report->leftYAxis = a;
+        };
+        void rightXAxis(uint8_t a) __attribute__((deprecated)) {
+            report->rightXAxis = a;
+        };
+        void rightYAxis(uint8_t a) __attribute__((deprecated)) {
+            report->rightYAxis = a;
+        };
+        void dPad(int8_t d) __attribute__((deprecated)) {
+            report->dPad = d;
+        };
+
     protected:
         uint32_t startMillis;
     private:
