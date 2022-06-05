@@ -220,6 +220,39 @@ class usb_nsgamepad_class
         void dPad(int8_t d) {
             report->dPad = d;
         };
+        void setDpad(bool up, bool down, bool left, bool right) {
+            // Simultaneous Opposite Cardinal Directions (SOCD) cleaner
+            // up + down is up only, left + right is neutral
+            if (up && down) {
+                down = false;
+            }
+            if (left && right) {
+                left = false;
+                right = false;
+            }
+
+            uint8_t output;
+            if (up) {
+                if (right) output = NSGAMEPAD_DPAD_UP_RIGHT;
+                else       output = NSGAMEPAD_DPAD_UP;
+            }
+            else if (right) {
+                if (down) output = NSGAMEPAD_DPAD_DOWN_RIGHT;
+                else      output = NSGAMEPAD_DPAD_RIGHT;
+            }
+            else if (down) {
+                if (left) output = NSGAMEPAD_DPAD_DOWN_LEFT;
+                else      output = NSGAMEPAD_DPAD_DOWN;
+            }
+            else if (left) {
+                if (up) output = NSGAMEPAD_DPAD_UP_LEFT;
+                else    output = NSGAMEPAD_DPAD_LEFT;
+            }
+            else {
+                output = NSGAMEPAD_DPAD_CENTERED;
+            }
+            report->dPad = output;
+        }
     protected:
         uint32_t startMillis;
     private:
