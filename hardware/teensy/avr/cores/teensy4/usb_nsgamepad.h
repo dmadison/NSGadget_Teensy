@@ -141,8 +141,8 @@ class usb_nsgamepad_class
         void write(void) {
             usb_nsgamepad_send();
         };
-        void write(void *report) {
-            memcpy(report, report, NSGAMEPAD_REPORT_SIZE);
+        void write(void *r) {
+            memcpy(report, r, NSGAMEPAD_REPORT_SIZE);
             usb_nsgamepad_send();
         };
         void press(uint8_t b) {
