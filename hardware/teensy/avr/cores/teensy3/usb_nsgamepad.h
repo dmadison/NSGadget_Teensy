@@ -126,15 +126,11 @@ class usb_nsgamepad_class
 
         void press(uint8_t b);
         void release(uint8_t b);
+
+        void set(uint8_t input, uint8_t value);
+        uint8_t get(uint8_t input) const;
+
         void releaseAll(void);
-
-        void setButton(uint8_t b, bool state);
-        void setAxis(uint8_t a, uint8_t pos);
-        void setDpad(bool up, bool down, bool left, bool right);
-
-        bool getButton(uint8_t b);
-        uint8_t getAxis(uint8_t a);
-        bool getDpad(uint8_t d);
 
         // Deprecated functions
         void end(void) __attribute__((deprecated));
@@ -156,15 +152,16 @@ class usb_nsgamepad_class
             union {
                 uint8_t raw;
                 struct {
-                    bool up : 1;
-                    bool down : 1;
-                    bool left : 1;
+                    bool up    : 1;
+                    bool down  : 1;
+                    bool left  : 1;
                     bool right : 1;
                 };
             };
         } dpadBuffer;
 
         static uint8_t encodeDpad(DPadButtons dpad);
+        static bool isAxis(uint8_t input);
 };
 extern usb_nsgamepad_class NSGamepad;
 

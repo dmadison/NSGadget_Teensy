@@ -72,75 +72,77 @@ void usb_nsgamepad_class::send(HID_NSGamepadReport_Data_t& r) {
     usb_nsgamepad_send();
 }
 
-void usb_nsgamepad_class::press(uint8_t b) {
-    report->buttons |= (uint16_t)1 << b;
-};
-
-void usb_nsgamepad_class::release(uint8_t b) {
-    report->buttons &= ~((uint16_t)1 << b);
-};
-
-void usb_nsgamepad_class::releaseAll(void) {
-    // release all buttons and center all axes
-    memset(report, 0x00, NSGAMEPAD_REPORT_SIZE);
-    report->leftXAxis = report->leftYAxis = 0x80;
-    report->rightXAxis = report->rightYAxis = 0x80;
-    dpadBuffer.raw = 0x00;
-};
-
-void usb_nsgamepad_class::setButton(uint8_t b, bool state) {
-    state ? press(b) : release(b);
+void usb_nsgamepad_class::press(uint8_t input) {
+    if (isAxis(input))
+        return;  // cannot 'press' an axis
+    set(input, true);
 }
 
-bool usb_nsgamepad_class::getButton(uint8_t b) {
-    return report->buttons & ((uint16_t)1 << b);
+void usb_nsgamepad_class::release(uint8_t input) {
+    if (isAxis(input))
+        set(input, 0x80);  // 'release' axis to center
+    else
+        set(input, false);
 }
 
-void usb_nsgamepad_class::setAxis(uint8_t a, uint8_t pos) {
-    switch (a) {
+void usb_nsgamepad_class::set(uint8_t input, uint8_t value) {
+    switch (input) {
+
+     // Analog axes
     case(NSAxis_LeftX):
-        report->leftXAxis = pos;
+        report->leftXAxis = value;
         break;
     case(NSAxis_LeftY):
-        report->leftYAxis = pos;
+        report->leftYAxis = value;
         break;
     case(NSAxis_RightX):
-        report->rightXAxis = pos;
+        report->rightXAxis = value;
         break;
     case(NSAxis_RightY):
-        report->rightYAxis = pos;
+        report->rightYAxis = value;
         break;
+
+    // Directional pad
+    case(NSDPad_Up):
+        dpadBuffer.up = value;
+        break;
+    case(NSDPad_Down):
+        dpadBuffer.down = value;
+        break;
+    case(NSDPad_Left):
+        dpadBuffer.left = value;
+        break;
+    case(NSDPad_Right):
+        dpadBuffer.right = value;
+        break;
+
+    // Buttons
     default:
-        break;
+        if (value) report->buttons |= (uint16_t)1 << input;
+        else report->buttons &= ~((uint16_t)1 << input);
     }
 }
 
-uint8_t usb_nsgamepad_class::getAxis(uint8_t a) {
-    uint8_t out;
-    switch (a) {
+uint8_t usb_nsgamepad_class::get(uint8_t input) const {
+    uint8_t output;
+
+    switch (input) {
+
+    // Analog axes
     case(NSAxis_LeftX):
-        out = report->leftXAxis;
+        output = report->leftXAxis;
         break;
     case(NSAxis_LeftY):
-        out = report->leftYAxis;
+        output = report->leftYAxis;
         break;
     case(NSAxis_RightX):
-        out = report->rightXAxis;
+        output = report->rightXAxis;
         break;
     case(NSAxis_RightY):
-        out = report->rightYAxis;
+        output = report->rightYAxis;
         break;
-    default:
-        out = 0;
-        break;
-        }
-    return out;
-}
 
-bool usb_nsgamepad_class::getDpad(uint8_t d) {
-    bool output;
-
-    switch (d) {
+    // Directional pad
     case(NSDPad_Up):
         output = dpadBuffer.up;
         break;
@@ -153,18 +155,22 @@ bool usb_nsgamepad_class::getDpad(uint8_t d) {
     case(NSDPad_Right):
         output = dpadBuffer.right;
         break;
+
+    // Buttons
     default:
-        output = false;  // not a dpad
+        output = report->buttons & (uint16_t)1 << input;
     }
+
     return output;
 }
 
-void usb_nsgamepad_class::setDpad(bool up, bool down, bool left, bool right) {
-    dpadBuffer.up = up;
-    dpadBuffer.down = down;
-    dpadBuffer.left = left;
-    dpadBuffer.right = right;
-}
+void usb_nsgamepad_class::releaseAll(void) {
+    // release all buttons and center all axes
+    memset(report, 0x00, NSGAMEPAD_REPORT_SIZE);
+    report->leftXAxis = report->leftYAxis = 0x80;
+    report->rightXAxis = report->rightYAxis = 0x80;
+    dpadBuffer.raw = 0x00;
+};
 
 uint8_t usb_nsgamepad_class::encodeDpad(DPadButtons dpad) {
     // Simultaneous Opposite Cardinal Directions (SOCD) cleaner
@@ -199,6 +205,20 @@ uint8_t usb_nsgamepad_class::encodeDpad(DPadButtons dpad) {
         output = NSGAMEPAD_DPAD_CENTERED;
     }
     return output;
+}
+
+bool usb_nsgamepad_class::isAxis(uint8_t input) {
+    switch (input) {
+    case(NSAxis_LeftX):
+    case(NSAxis_LeftY):
+    case(NSAxis_RightX):
+    case(NSAxis_RightY):
+        return true;
+        break;
+    default:
+        break;
+    }
+    return false;
 }
 
 
