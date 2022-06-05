@@ -145,6 +145,12 @@ class usb_nsgamepad_class
         void buttons(uint16_t b) {
             _report->buttons = b;
         };
+        void setButton(uint8_t b, bool state) {
+            state ? press(b) : release(b);
+        }
+        bool getButton(uint8_t b) {
+            return _report->buttons & ((uint16_t)1 << b);
+        }
         void leftXAxis(uint8_t a) {
             _report->leftXAxis = a;
         };
