@@ -65,7 +65,11 @@ extern volatile uint8_t usb_configuration;
 
 #define ATTRIBUTE_PACKED  __attribute__((packed, aligned(1)))
 
-enum NSButtons {
+// For backwards compatibility with the old enum name
+#define NSButtons NSInputs
+
+enum NSInputs {
+  // Buttons (in bitfield)
   NSButton_Y = 0,
   NSButton_B,
   NSButton_A,
@@ -81,12 +85,10 @@ enum NSButtons {
   NSButton_Home,
   NSButton_Capture,
   NSButton_Reserved1,
-  NSButton_Reserved2
-};
+  NSButton_Reserved2,
 
-enum NSAxes {
-  // using unique IDs from NSButtons, with separate type
-  NSAxis_LeftX = NSButton_Reserved2 + 1,
+  // Analog Axes
+  NSAxis_LeftX,
   NSAxis_LeftY,
   NSAxis_RightX,
   NSAxis_RightY,
