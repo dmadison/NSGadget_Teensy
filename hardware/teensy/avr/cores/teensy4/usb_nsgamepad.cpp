@@ -169,6 +169,7 @@ void usb_nsgamepad_class::releaseAll(void) {
     memset(report, 0x00, NSGAMEPAD_REPORT_SIZE);
     report->leftXAxis = report->leftYAxis = 0x80;
     report->rightXAxis = report->rightYAxis = 0x80;
+    report->dPad = NSGAMEPAD_DPAD_CENTERED;
     dpadBuffer.raw = 0x00;
 };
 
