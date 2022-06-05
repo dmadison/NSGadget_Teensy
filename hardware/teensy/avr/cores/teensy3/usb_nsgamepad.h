@@ -233,8 +233,9 @@ class usb_nsgamepad_class
 
             uint8_t output;
             if (up) {
-                if (right) output = NSGAMEPAD_DPAD_UP_RIGHT;
-                else       output = NSGAMEPAD_DPAD_UP;
+                     if (left)  output = NSGAMEPAD_DPAD_UP_LEFT;
+                else if (right) output = NSGAMEPAD_DPAD_UP_RIGHT;
+                else            output = NSGAMEPAD_DPAD_UP;
             }
             else if (right) {
                 if (down) output = NSGAMEPAD_DPAD_DOWN_RIGHT;
@@ -245,8 +246,7 @@ class usb_nsgamepad_class
                 else      output = NSGAMEPAD_DPAD_DOWN;
             }
             else if (left) {
-                if (up) output = NSGAMEPAD_DPAD_UP_LEFT;
-                else    output = NSGAMEPAD_DPAD_LEFT;
+                output = NSGAMEPAD_DPAD_LEFT;
             }
             else {
                 output = NSGAMEPAD_DPAD_CENTERED;
