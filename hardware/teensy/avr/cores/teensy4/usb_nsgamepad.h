@@ -110,193 +110,37 @@ typedef struct ATTRIBUTE_PACKED {
 class usb_nsgamepad_class
 {
     public:
-        usb_nsgamepad_class()
-            : report((HID_NSGamepadReport_Data_t*)(&usb_nsgamepad_data[0]))
-        {
-            releaseAll();  // fill report struct with idle data
-        }
-        bool connected(void) {
-            return usb_configuration ? 1 : 0;
-        }
-        void begin(void) {
-            releaseAll();
-            usb_nsgamepad_send();
-            startMillis = millis();
-        };
-        void loop(void){
-            const uint32_t now = millis();
-            // 6 for the NSGAMEPAD_INTERVAL (bInterval) of 5, + 1
-            if (now - startMillis >= 6) {
-                send();
-                startMillis = now;
-            }
-        };
-        void send(void) {
-            usb_nsgamepad_send();
-        }
-        void send(HID_NSGamepadReport_Data_t& r) {
-            memcpy(report, &r, sizeof(HID_NSGamepadReport_Data_t));
-            usb_nsgamepad_send();
-        }
-        void press(uint8_t b) {
-            report->buttons |= (uint16_t)1 << b;
-        };
-        void release(uint8_t b) {
-            report->buttons &= ~((uint16_t)1 << b);
-        };
-        void releaseAll(void) {
-            // release all buttons and center all axes
-            memset(report, 0x00, NSGAMEPAD_REPORT_SIZE);
-            report->leftXAxis = report->leftYAxis = 0x80;
-            report->rightXAxis = report->rightYAxis = 0x80;
-            report->dPad = NSGAMEPAD_DPAD_CENTERED;
-        };
-        void setButton(uint8_t b, bool state) {
-            state ? press(b) : release(b);
-        }
-        bool getButton(uint8_t b) {
-            return report->buttons & ((uint16_t)1 << b);
-        }
-        void setAxis(uint8_t a, uint8_t pos) {
-            switch(a) {
-            case(NSAxis_LeftX):
-                report->leftXAxis = pos;
-                break;
-            case(NSAxis_LeftY):
-                report->leftYAxis = pos;
-                break;
-            case(NSAxis_RightX):
-                report->rightXAxis = pos;
-                break;
-            case(NSAxis_RightY):
-                report->rightYAxis = pos;
-                break;
-            default:
-                break;
-            }
-        }
-        uint8_t getAxis(uint8_t a) {
-            uint8_t out;
-            switch(a) {
-            case(NSAxis_LeftX):
-                out = report->leftXAxis;
-                break;
-            case(NSAxis_LeftY):
-                out = report->leftYAxis;
-                break;
-            case(NSAxis_RightX):
-                out = report->rightXAxis;
-                break;
-            case(NSAxis_RightY):
-                out = report->rightYAxis;
-                break;
-            default:
-                out = 0;
-                break;
-            }
-            return out;
-        }
-        bool getDpad(uint8_t d) {
-            bool output;
+        usb_nsgamepad_class();
 
-            switch (d) {
-            case(NSGAMEPAD_DPAD_UP):
-                output = (
-                       report->dPad == NSGAMEPAD_DPAD_UP 
-                    || report->dPad == NSGAMEPAD_DPAD_UP_LEFT
-                    || report->dPad == NSGAMEPAD_DPAD_UP_RIGHT
-                );
-                break;
-            case(NSGAMEPAD_DPAD_DOWN):
-                output = (
-                       report->dPad == NSGAMEPAD_DPAD_DOWN
-                    || report->dPad == NSGAMEPAD_DPAD_DOWN_LEFT
-                    || report->dPad == NSGAMEPAD_DPAD_DOWN_RIGHT
-                    );
-                break;
-            case(NSGAMEPAD_DPAD_RIGHT):
-                output = (
-                       report->dPad == NSGAMEPAD_DPAD_RIGHT
-                    || report->dPad == NSGAMEPAD_DPAD_UP_RIGHT
-                    || report->dPad == NSGAMEPAD_DPAD_DOWN_RIGHT
-                    );
-                break;
-            case(NSGAMEPAD_DPAD_LEFT):
-                output = (
-                       report->dPad == NSGAMEPAD_DPAD_LEFT
-                    || report->dPad == NSGAMEPAD_DPAD_UP_LEFT
-                    || report->dPad == NSGAMEPAD_DPAD_DOWN_LEFT
-                    );
-                break;
-            default:
-                output = (d == report->dPad);
-            }
-            return output;
-        }
-        void setDpad(bool up, bool down, bool left, bool right) {
-            // Simultaneous Opposite Cardinal Directions (SOCD) cleaner
-            // up + down is up only, left + right is neutral
-            if (up && down) {
-                down = false;
-            }
-            if (left && right) {
-                left = false;
-                right = false;
-            }
+        void begin(void);
+        bool connected(void);
+        
+        void loop(void);
+        void send(void);
+        void send(HID_NSGamepadReport_Data_t& r);
 
-            uint8_t output;
-            if (up) {
-                     if (left)  output = NSGAMEPAD_DPAD_UP_LEFT;
-                else if (right) output = NSGAMEPAD_DPAD_UP_RIGHT;
-                else            output = NSGAMEPAD_DPAD_UP;
-            }
-            else if (right) {
-                if (down) output = NSGAMEPAD_DPAD_DOWN_RIGHT;
-                else      output = NSGAMEPAD_DPAD_RIGHT;
-            }
-            else if (down) {
-                if (left) output = NSGAMEPAD_DPAD_DOWN_LEFT;
-                else      output = NSGAMEPAD_DPAD_DOWN;
-            }
-            else if (left) {
-                output = NSGAMEPAD_DPAD_LEFT;
-            }
-            else {
-                output = NSGAMEPAD_DPAD_CENTERED;
-            }
-            report->dPad = output;
-        }
+        void press(uint8_t b);
+        void release(uint8_t b);
+        void releaseAll(void);
+
+        void setButton(uint8_t b, bool state);
+        void setAxis(uint8_t a, uint8_t pos);
+        void setDpad(bool up, bool down, bool left, bool right);
+
+        bool getButton(uint8_t b);
+        uint8_t getAxis(uint8_t a);
+        bool getDpad(uint8_t d);
 
         // Deprecated functions
-        void end(void) __attribute__((deprecated)) {
-            releaseAll();
-            usb_nsgamepad_send();
-        };
-        void write(void) __attribute__((deprecated)) {
-            usb_nsgamepad_send();
-        };
-        void write(void* r) __attribute__((deprecated)) {
-            memcpy(report, r, NSGAMEPAD_REPORT_SIZE);
-            usb_nsgamepad_send();
-        };
-        void buttons(uint16_t b) __attribute__((deprecated)) {
-            report->buttons = b;
-        };
-        void leftXAxis(uint8_t a) __attribute__((deprecated)) {
-            report->leftXAxis = a;
-        };
-        void leftYAxis(uint8_t a) __attribute__((deprecated)) {
-            report->leftYAxis = a;
-        };
-        void rightXAxis(uint8_t a) __attribute__((deprecated)) {
-            report->rightXAxis = a;
-        };
-        void rightYAxis(uint8_t a) __attribute__((deprecated)) {
-            report->rightYAxis = a;
-        };
-        void dPad(int8_t d) __attribute__((deprecated)) {
-            report->dPad = d;
-        };
+        void end(void) __attribute__((deprecated));
+        void write(void) __attribute__((deprecated));
+        void write(void* r) __attribute__((deprecated));
+        void buttons(uint16_t b) __attribute__((deprecated));
+        void leftXAxis(uint8_t a) __attribute__((deprecated));
+        void leftYAxis(uint8_t a) __attribute__((deprecated));
+        void rightXAxis(uint8_t a) __attribute__((deprecated));
+        void rightYAxis(uint8_t a) __attribute__((deprecated));
+        void dPad(int8_t d) __attribute__((deprecated));
 
     protected:
         uint32_t startMillis;
