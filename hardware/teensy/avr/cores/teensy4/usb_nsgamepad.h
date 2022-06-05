@@ -122,17 +122,11 @@ class usb_nsgamepad_class
             startMillis = millis();
         };
         void loop(void){
-            uint32_t endMillis = millis();
-            uint32_t deltaMillis;
-            if (endMillis >= startMillis) {
-                deltaMillis = (endMillis - startMillis);
-            }
-            else {
-                deltaMillis = ((0xFFFFFFFFUL - startMillis) + endMillis);
-            }
-            if (deltaMillis >= 6) {
+            const uint32_t now = millis();
+            // 6 for the NSGAMEPAD_INTERVAL (bInterval) of 5, + 1
+            if (now - startMillis >= 6) {
                 send();
-                startMillis = millis();
+                startMillis = now;
             }
         };
         void send(void) {
