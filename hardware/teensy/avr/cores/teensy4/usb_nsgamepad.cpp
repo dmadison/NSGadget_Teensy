@@ -75,12 +75,17 @@ void usb_nsgamepad_class::send(HID_NSGamepadReport_Data_t& r) {
 void usb_nsgamepad_class::press(uint8_t input) {
     if (isAxis(input))
         return;  // cannot 'press' an axis
-    set(input, true);
+    if (input == NSDPad)
+        set(input, NSGAMEPAD_DPAD_CENTERED);  // 'pressing' the entire thing is the same as centering
+    else
+        set(input, true);
 }
 
 void usb_nsgamepad_class::release(uint8_t input) {
     if (isAxis(input))
         set(input, 0x80);  // 'release' axis to center
+    if (input == NSDPad)
+        set(input, NSGAMEPAD_DPAD_CENTERED);  // 'release' dpad to center
     else
         set(input, false);
 }
@@ -103,6 +108,13 @@ void usb_nsgamepad_class::set(uint8_t input, uint8_t value) {
         break;
 
     // Directional pad
+    case(NSDPad):
+        // Decode raw directional axis into buffer
+        dpadBuffer.up    = (value == NSGAMEPAD_DPAD_UP_LEFT)    || (value <= NSGAMEPAD_DPAD_UP_RIGHT);
+        dpadBuffer.right = (value >= NSGAMEPAD_DPAD_UP_RIGHT)   && (value <= NSGAMEPAD_DPAD_DOWN_RIGHT);
+        dpadBuffer.down  = (value >= NSGAMEPAD_DPAD_DOWN_RIGHT) && (value <= NSGAMEPAD_DPAD_DOWN_LEFT);
+        dpadBuffer.left  = (value >= NSGAMEPAD_DPAD_DOWN_LEFT)  && (value <= NSGAMEPAD_DPAD_UP_LEFT);
+        break;
     case(NSDPad_Up):
         dpadBuffer.up = value;
         break;
@@ -143,6 +155,9 @@ uint8_t usb_nsgamepad_class::get(uint8_t input) const {
         break;
 
     // Directional pad
+    case(NSDPad):
+        output = encodeDpad(dpadBuffer);
+        break;
     case(NSDPad_Up):
         output = dpadBuffer.up;
         break;

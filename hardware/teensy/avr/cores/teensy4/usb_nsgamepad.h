@@ -94,6 +94,7 @@ enum NSInputs {
   NSAxis_RightY,
 
   // Directional Pads
+  NSDPad,  // as raw encoding
   NSDPad_Up,
   NSDPad_Down,
   NSDPad_Left,
