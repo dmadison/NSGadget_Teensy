@@ -38,7 +38,7 @@ struct ButtonInput {
     Bounce  button;   // the Bounce button object
 };
 
-#define NUM_INPUTS 20
+#define NUM_INPUTS 18
 ButtonInput inputs[NUM_INPUTS] = {
     { 23, NSButton_Y },
     { 22, NSButton_B },
