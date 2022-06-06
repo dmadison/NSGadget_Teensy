@@ -75,7 +75,7 @@ void usb_nsgamepad_class::send(HID_NSGamepadReport_Data_t& r) {
 void usb_nsgamepad_class::press(uint8_t input) {
     if (isAxis(input))
         return;  // cannot 'press' an axis
-    if (input == NSDPad)
+    else if (input == NSDPad)
         set(input, NSGAMEPAD_DPAD_CENTERED);  // 'pressing' the entire thing is the same as centering
     else
         set(input, true);
@@ -84,7 +84,7 @@ void usb_nsgamepad_class::press(uint8_t input) {
 void usb_nsgamepad_class::release(uint8_t input) {
     if (isAxis(input))
         set(input, 0x80);  // 'release' axis to center
-    if (input == NSDPad)
+    else if (input == NSDPad)
         set(input, NSGAMEPAD_DPAD_CENTERED);  // 'release' dpad to center
     else
         set(input, false);
